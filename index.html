@@ -4,8 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>ComicCam — filmá tu cómic</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Permanent+Marker&family=Anton&family=Luckiest+Guy&family=Comic+Neue:wght@400;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#D63B32">
+<meta name="description" content="Filmá con la cámara, convertí cada toma en dibujo y armá tu propia historieta. Se instala como app y funciona sin internet.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ComicCam">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Permanent+Marker&family=Anton&family=Luckiest+Guy&family=Comic+Neue:wght@400;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" crossorigin="anonymous">
 <style>
   :root{
     --paper:#F2ECDC;
@@ -164,6 +173,17 @@
   @media (max-width:520px){
     .cam-controls .btn, .seq-controls .btn{flex:1 1 auto;}
   }
+  /* ===== Instalar / Offline (PWA) ===== */
+  .pwa-row{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; width:100%;}
+  .pwa-row .btn{flex:0 1 auto;}
+  .pwa-status{font-size:0.8rem; opacity:0.75; margin:4px 0 0; width:100%;}
+  .pwa-steps{font-size:0.9rem; line-height:1.5; padding-left:20px; margin:0 0 10px;}
+  .pwa-tabs{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;}
+  .pwa-tabs .btn{padding:6px 10px; font-size:0.8rem;}
+  .pwa-tabs .btn.on{background:var(--yellow);}
+  .pwa-panel{display:none;}
+  .pwa-panel.on{display:block;}
+  .pwa-progress{font-size:0.85rem; margin:8px 0 0; min-height:1.2em;}
 </style>
 </head>
 <body>
@@ -173,6 +193,11 @@
     <h1>Comic<span>Cam</span></h1>
     <p>Filmá con la cámara, convertí cada toma en dibujo, agregá globos de diálogo y armá tu propia historieta — hasta con ayuda de IA.</p>
     <button class="btn" id="apiKeyBtn" style="margin-top:8px;">🔑 Configurar API key (Gemini)</button>
+    <div class="pwa-row">
+      <button class="btn yellow" id="installBtn" type="button">📲 Instalar app</button>
+      <button class="btn blue" id="offlineDlBtn" type="button">⬇️ Descargar versión offline</button>
+    </div>
+    <p class="pwa-status" id="pwaStatus"></p>
   </header>
 
   <main>
@@ -280,6 +305,65 @@
 </div>
 
 <!-- MODAL API KEY -->
+<div class="modal-overlay" id="installOverlay">
+  <div class="modal">
+    <h3>📲 Instalar ComicCam</h3>
+    <p style="font-size:0.9rem; line-height:1.4; margin-top:0;" id="installIntro">
+      Instalala como app y abrila desde tu pantalla de inicio o escritorio, a pantalla completa y sin barra del navegador.
+    </p>
+    <div class="pwa-tabs" id="installTabs">
+      <button class="btn" type="button" data-tab="android">🤖 Android</button>
+      <button class="btn" type="button" data-tab="ios">🍎 iPhone / iPad</button>
+      <button class="btn" type="button" data-tab="desktop">💻 Computadora</button>
+    </div>
+    <div class="pwa-panel" data-panel="android">
+      <ol class="pwa-steps">
+        <li>Abrí esta página en <b>Chrome</b> (o Edge / Samsung Internet).</li>
+        <li>Tocá el menú <b>⋮</b> de arriba a la derecha.</li>
+        <li>Elegí <b>«Instalar app»</b> o <b>«Agregar a pantalla de inicio»</b>.</li>
+      </ol>
+    </div>
+    <div class="pwa-panel" data-panel="ios">
+      <ol class="pwa-steps">
+        <li>Abrí esta página en <b>Safari</b> (en iPhone/iPad solo Safari puede instalar).</li>
+        <li>Tocá el botón <b>Compartir</b> (el cuadrado con la flecha ↑).</li>
+        <li>Bajá y elegí <b>«Agregar a inicio»</b> y confirmá con <b>Agregar</b>.</li>
+      </ol>
+    </div>
+    <div class="pwa-panel" data-panel="desktop">
+      <ol class="pwa-steps">
+        <li><b>Chrome / Edge:</b> hacé clic en el ícono de instalar (⊕ o 🖥️) al final de la barra de direcciones, o menú <b>⋮ → «Instalar ComicCam»</b>.</li>
+        <li><b>Safari (Mac):</b> menú <b>Archivo → «Agregar al Dock»</b>.</li>
+        <li><b>Firefox:</b> no puede instalar apps web; usá <b>«⬇️ Descargar versión offline»</b> y abrí el archivo con doble clic.</li>
+      </ol>
+    </div>
+    <p style="font-size:0.8rem; opacity:0.75; margin:6px 0 0;" id="installNote"></p>
+    <div class="modal-actions">
+      <button class="btn primary" id="installCloseBtn" type="button">Listo</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="offlineOverlay">
+  <div class="modal">
+    <h3>⬇️ Versión offline</h3>
+    <p style="font-size:0.9rem; line-height:1.4; margin-top:0;">
+      Se descarga <b>un solo archivo</b> (<code>ComicCam-offline.html</code>) con todo incluido:
+      tipografías y librerías (ZIP y PDF). Guardalo en tu compu o celular y abrilo cuando quieras, <b>sin internet</b>.
+    </p>
+    <ul class="pwa-steps" style="list-style:disc;">
+      <li>Las fotos y cuadros se procesan en tu dispositivo.</li>
+      <li>La IA de Gemini (✨ / 💡) sí necesita conexión.</li>
+      <li>Para armar el archivo se necesita internet <b>una sola vez</b>.</li>
+    </ul>
+    <p class="pwa-progress" id="offlineProgress"></p>
+    <div class="modal-actions">
+      <button class="btn" id="offlineCancelBtn" type="button">Cerrar</button>
+      <button class="btn primary" id="offlineGoBtn" type="button">Descargar archivo</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="apiKeyOverlay">
   <div class="modal">
     <h3>🔑 API key de Gemini</h3>
@@ -334,8 +418,8 @@
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
 <script>
 (function(){
   "use strict";
@@ -2107,6 +2191,184 @@ const SFX_STAMPS = [
 
   window.addEventListener('beforeunload', stopCamera);
 })();
+
+  /* =========================================================
+     INSTALAR APP (PWA) + MODO OFFLINE
+     ========================================================= */
+  (function pwaSetup(){
+    const $ = id => document.getElementById(id);
+    const installBtn = $('installBtn'), offlineDlBtn = $('offlineDlBtn'), statusEl = $('pwaStatus');
+    const installOverlay = $('installOverlay'), offlineOverlay = $('offlineOverlay');
+    const isFile = location.protocol === 'file:';
+    const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches
+      || window.matchMedia('(display-mode: window-controls-overlay)').matches
+      || window.navigator.standalone === true;
+    let deferredPrompt = null;
+
+    /* --- Service worker (solo con http/https; en file:// no aplica) --- */
+    if ('serviceWorker' in navigator && !isFile){
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').then(reg => {
+          const ready = () => { statusEl.textContent = '✅ Lista para usar sin internet.'; };
+          if (reg.active) ready();
+          navigator.serviceWorker.ready.then(ready);
+          reg.addEventListener('updatefound', () => {
+            const nw = reg.installing;
+            if (nw) nw.addEventListener('statechange', () => {
+              if (nw.state === 'installed' && navigator.serviceWorker.controller){
+                statusEl.textContent = '🔄 Hay una versión nueva; se aplica al reabrir la app.';
+              }
+            });
+          });
+        }).catch(err => console.warn('SW no registrado:', err));
+      });
+    }
+
+    /* --- Botón Instalar --- */
+    function showTab(name){
+      installOverlay.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
+      installOverlay.querySelectorAll('[data-panel]').forEach(p => p.classList.toggle('on', p.dataset.panel === name));
+    }
+    installOverlay.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
+
+    function guessTab(){
+      const ua = navigator.userAgent || '';
+      if (/iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return 'ios';
+      if (/Android/i.test(ua)) return 'android';
+      return 'desktop';
+    }
+    function openInstallHelp(){
+      const note = $('installNote');
+      if (isFile) note.textContent = 'Estás abriendo el archivo local: ya funciona sin internet. Para instalarla como app, tiene que estar publicada en una dirección https:// (por ejemplo GitHub Pages).';
+      else if (!window.isSecureContext) note.textContent = 'Para instalar hace falta abrirla desde una dirección https:// (o localhost).';
+      else note.textContent = '';
+      showTab(guessTab());
+      installOverlay.classList.add('open');
+    }
+
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.textContent = '📲 Instalar app';
+    });
+    window.addEventListener('appinstalled', () => {
+      deferredPrompt = null;
+      installBtn.style.display = 'none';
+      statusEl.textContent = '🎉 ¡ComicCam instalada!';
+    });
+
+    installBtn.addEventListener('click', async () => {
+      if (deferredPrompt){
+        deferredPrompt.prompt();
+        try { await deferredPrompt.userChoice; } catch(_){}
+        deferredPrompt = null;
+      } else {
+        openInstallHelp();
+      }
+    });
+    $('installCloseBtn').addEventListener('click', () => installOverlay.classList.remove('open'));
+    installOverlay.addEventListener('click', e => { if (e.target === installOverlay) installOverlay.classList.remove('open'); });
+
+    if (isStandalone()){
+      installBtn.style.display = 'none';
+      offlineDlBtn.style.display = 'none';
+    }
+    if (isFile){
+      // Ya es el archivo offline: no tiene sentido descargarlo otra vez
+      offlineDlBtn.style.display = 'none';
+      statusEl.textContent = '📴 Versión local: funciona sin internet (la IA de Gemini sí necesita conexión).';
+    }
+
+    /* --- Descarga de versión offline (un solo .html autocontenido) --- */
+    const progEl = $('offlineProgress'), goBtn = $('offlineGoBtn');
+    offlineDlBtn.addEventListener('click', () => { progEl.textContent = ''; offlineOverlay.classList.add('open'); });
+    $('offlineCancelBtn').addEventListener('click', () => offlineOverlay.classList.remove('open'));
+    offlineOverlay.addEventListener('click', e => { if (e.target === offlineOverlay) offlineOverlay.classList.remove('open'); });
+
+    const toB64 = blob => new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(r.result);
+      r.onerror = () => rej(r.error);
+      r.readAsDataURL(blob);
+    });
+    const fetchOk = async (url, kind) => {
+      const r = await fetch(url, { mode:'cors' });
+      if (!r.ok) throw new Error('No se pudo obtener ' + url + ' (' + r.status + ')');
+      return kind === 'blob' ? r.blob() : r.text();
+    };
+
+    async function buildOfflineHtml(){
+      progEl.textContent = 'Leyendo la app…';
+      let html = await fetchOk(location.href.split('#')[0].split('?')[0], 'text');
+
+      // 1) Scripts externos -> inline
+      const scriptRe = /<script\s+src="(https:\/\/[^"]+)"[^>]*><\/script>/g;
+      const scripts = [...html.matchAll(scriptRe)];
+      for (let i = 0; i < scripts.length; i++){
+        const [tag, src] = scripts[i];
+        progEl.textContent = 'Incluyendo librería ' + (i+1) + ' de ' + scripts.length + '…';
+        const code = (await fetchOk(src, 'text')).replace(/<\/script/gi, '<\\/script');
+        const name = src.split('/').slice(-3, -1).join(' ');
+        html = html.replace(tag, () => '<script>\n/* ' + name + ' (embebido, offline) */\n' + code + '\n<\/script>');
+      }
+
+      // 2) Google Fonts -> @font-face con base64 (solo latin / latin-ext)
+      const linkRe = /<link[^>]+href="(https:\/\/fonts\.googleapis\.com\/css2[^"]+)"[^>]*>/;
+      const lm = html.match(linkRe);
+      if (lm){
+        progEl.textContent = 'Incluyendo tipografías…';
+        const css = await fetchOk(lm[1].replace(/&amp;/g, '&'), 'text');
+        const blockRe = /\/\*\s*([\w-]+)\s*\*\/\s*(@font-face\s*\{[^}]*\})/g;
+        const blocks = [];
+        let m;
+        while ((m = blockRe.exec(css))){
+          if (m[1] === 'latin' || m[1] === 'latin-ext') blocks.push(m[2]);
+        }
+        if (!blocks.length) throw new Error('No se pudieron leer las tipografías.');
+        const cache = {};
+        const out = [];
+        for (let i = 0; i < blocks.length; i++){
+          let b = blocks[i];
+          const um = b.match(/url\((https:[^)]+)\)/);
+          if (um){
+            if (!cache[um[1]]) cache[um[1]] = await toB64(await fetchOk(um[1], 'blob'));
+            b = b.replace(um[0], 'url(' + cache[um[1]] + ')');
+          }
+          out.push(b);
+          progEl.textContent = 'Incluyendo tipografías… ' + (i+1) + '/' + blocks.length;
+        }
+        const style = '<style>\n/* Tipografías embebidas (offline) */\n' + out.join('\n') + '\n</style>';
+        html = html.replace(lm[0], () => style);
+        html = html.replace(/<link[^>]+rel="preconnect"[^>]*>\s*/g, '');
+      }
+
+      // 3) Quitar lo que solo sirve online / instalado
+      html = html.replace(/<link\s+rel="manifest"[^>]*>\s*/g, '');
+      html = html.replace(/<link\s+rel="(?:icon|apple-touch-icon)"[^>]*>\s*/g, '');
+      return html;
+    }
+
+    goBtn.addEventListener('click', async () => {
+      goBtn.disabled = true;
+      try{
+        if (!navigator.onLine) throw new Error('Necesitás internet una vez para armar el archivo.');
+        const html = await buildOfflineHtml();
+        const blob = new Blob([html], { type:'text/html;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'ComicCam-offline.html';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+        progEl.textContent = '✅ Listo (' + (blob.size/1048576).toFixed(1) + ' MB). Abrí el archivo descargado con doble clic.';
+      } catch(err){
+        console.error(err);
+        progEl.textContent = '⚠️ ' + err.message;
+      } finally {
+        goBtn.disabled = false;
+      }
+    });
+  })();
 </script>
 </body>
 </html>

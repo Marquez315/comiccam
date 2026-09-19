@@ -1,0 +1,19 @@
+{
+  "name": "ComicCam — filmá tu cómic",
+  "short_name": "ComicCam",
+  "description": "Filmá con la cámara, convertí cada toma en dibujo, agregá globos de diálogo y armá tu propia historieta.",
+  "lang": "es",
+  "id": "./",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F2ECDC",
+  "theme_color": "#D63B32",
+  "categories": ["entertainment", "graphics", "photo"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
